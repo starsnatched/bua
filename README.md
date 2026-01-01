@@ -9,7 +9,7 @@ bun dev # visit: http://localhost:3000
 Supports any Qwen3-VL models on Ollama.
 
 ```
-ollama pull qwen3-vl:30b-a3b-instruct-q4_K_M
+ollama pull qwen3-vl:30b
 ```
 
 Configure `config.json`.

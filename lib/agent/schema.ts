@@ -31,11 +31,6 @@ export const TypeAction = z.object({
   text: z.string(),
 });
 
-export const WaitAction = z.object({
-  action: z.literal("wait"),
-  ms: z.number().int(),
-});
-
 export const ScrollAction = z.object({
   action: z.literal("scroll"),
   direction: z.enum(["up", "down"]),
@@ -48,7 +43,6 @@ export const Action = z.discriminatedUnion("action", [
   PressAction,
   ReleaseAction,
   TypeAction,
-  WaitAction,
   ScrollAction,
 ]);
 
@@ -116,14 +110,6 @@ export const AgentResponseJsonSchema = {
               text: { type: "string" },
             },
             required: ["action", "text"],
-          },
-          {
-            type: "object",
-            properties: {
-              action: { const: "wait" },
-              ms: { type: "integer", minimum: 0, maximum: 10000 },
-            },
-            required: ["action", "ms"],
           },
           {
             type: "object",
