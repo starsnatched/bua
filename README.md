@@ -3,7 +3,7 @@ Browser/Computer Use Agent
 ```
 docker compose up -d
 
-bun dev
+bun dev # visit: http://localhost:3000
 ```
 
 Supports any Qwen3-VL models on Ollama.
