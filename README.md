@@ -1,1 +1,1 @@
-Browser Use Agent
+Browser/Computer Use Agent

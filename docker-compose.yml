@@ -1,0 +1,24 @@
+services:
+  windows:
+    image: dockurr/windows
+    container_name: bua-windows-desktop
+    environment:
+      VERSION: "11"
+      RAM_SIZE: "24G"
+      CPU_CORES: "8"
+      DISK_SIZE: "128G"
+    devices:
+      - /dev/kvm
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - "8006:8006"
+      - "5900:5900"
+      - "33389:3389"
+    volumes:
+      - windows-data:/storage
+    stop_grace_period: 2m
+    restart: unless-stopped
+
+volumes:
+  windows-data:

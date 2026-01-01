@@ -1,0 +1,16 @@
+{
+  "llm": {
+    "model": "qwen3-vl:30b-a3b-instruct-q4_K_M",
+    "temperature": 0.8,
+    "num_ctx": 256000
+  },
+  "vnc": {
+    "host": "localhost",
+    "port": 5900
+  },
+  "agent": {
+    "actionDelay": 0,
+    "screenshotDelay": 0
+  }
+}
+
