@@ -1,15 +1,6 @@
 {
-  "llm": {
-    "model": "Hcompany/Holo2-8B",
-    "temperature": 0.1,
-    "baseUrl": "http://192.168.0.242:8000/v1"
-  },
-  "vnc": {
-    "host": "localhost",
-    "port": 5900
-  },
-  "agent": {
-    "actionDelay": 0,
-    "screenshotDelay": 0
-  }
+  "baseURL": "http://localhost:11434/v1",
+  "apiKey": "",
+  "model": "ui-tars:latest",
+  "goal": "Open slack."
 }
