@@ -9,9 +9,8 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.71.2",
     "next": "16.1.1",
-    "ollama": "^0.6.3",
+    "openai": "^4.77.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "rfb2": "^0.2.2",

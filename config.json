@@ -1,8 +1,8 @@
 {
   "llm": {
-    "model": "qwen3-vl:30b",
+    "model": "Hcompany/Holo2-8B",
     "temperature": 0.1,
-    "num_ctx": 256000
+    "baseUrl": "http://192.168.0.242:8000/v1"
   },
   "vnc": {
     "host": "localhost",
@@ -13,4 +13,3 @@
     "screenshotDelay": 0
   }
 }
-

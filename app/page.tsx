@@ -1,12 +1,13 @@
-import VirtualDesktop from "./components/VirtualDesktop";
+import VirtualTablet from "./components/VirtualDesktop";
 
 export default function Home() {
   return (
     <div className="app-fullscreen">
-      <VirtualDesktop 
+      <VirtualTablet 
         host="localhost"
-        port={8006}
+        port={6080}
         hideControls={true}
+        viewOnly={true}
       />
     </div>
   );

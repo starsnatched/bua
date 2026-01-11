@@ -48,10 +48,10 @@ export class Agent {
 
         const response = await this.llm!.infer(screenshot);
 
-        for (const action of response.actions) {
-          console.log(`[Agent] ${action.action}:`, JSON.stringify(action));
+        for (const action of response) {
+          console.log(`[Agent] ${action.type}:`, JSON.stringify(action));
           await this.vnc.execute(action);
-          await this.sleep(this.config.actionDelay ?? 150);
+          await this.sleep(this.config.actionDelay ?? 20);
         }
       } catch (err) {
         console.error("[Agent] Error:", err);

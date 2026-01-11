@@ -1,24 +1,29 @@
 services:
-  windows:
-    image: dockurr/windows
-    container_name: bua-windows-desktop
+  android:
+    image: budtmo/docker-android:emulator_14.0
+    container_name: bua-android-tablet
+    privileged: true
     environment:
-      VERSION: "11"
-      RAM_SIZE: "24G"
-      CPU_CORES: "8"
-      DISK_SIZE: "128G"
+      EMULATOR_DEVICE: "Nexus 10"
+      WEB_VNC: "true"
+      WEB_LOG: "true"
+      SCREEN_WIDTH: "1000"
+      SCREEN_HEIGHT: "1000"
+      SCREEN_DEPTH: "24"
+      SCREEN_DPI: "160"
+      DATAPARTITION: "4096"
+      RELAXED_SECURITY: "true"
     devices:
       - /dev/kvm
-    cap_add:
-      - NET_ADMIN
     ports:
-      - "8006:8006"
+      - "6080:6080"
       - "5900:5900"
-      - "33389:3389"
+      - "5554:5554"
+      - "5555:5555"
     volumes:
-      - windows-data:/storage
+      - android-data:/root/android-data
     stop_grace_period: 2m
     restart: unless-stopped
 
 volumes:
-  windows-data:
+  android-data:

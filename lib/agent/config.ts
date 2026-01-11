@@ -5,7 +5,7 @@ import type { VncConfig } from "./vnc-client";
 export interface LlmConfig {
   model: string;
   temperature: number;
-  num_ctx: number;
+  baseUrl?: string;
 }
 
 export interface AgentSettings {
@@ -32,9 +32,9 @@ export function loadConfig(): AppConfig {
 
   cachedConfig = {
     llm: {
-      model: parsed.llm?.model ?? "bua",
-      temperature: parsed.llm?.temperature ?? 0.8,
-      num_ctx: parsed.llm?.num_ctx ?? 256000,
+      model: parsed.llm?.model ?? "gpt-4o",
+      temperature: parsed.llm?.temperature ?? 0.1,
+      baseUrl: parsed.llm?.baseUrl,
     },
     vnc: {
       host: parsed.vnc?.host ?? "localhost",
@@ -53,4 +53,3 @@ export function loadConfig(): AppConfig {
 export function getConfig(): AppConfig {
   return loadConfig();
 }
-
