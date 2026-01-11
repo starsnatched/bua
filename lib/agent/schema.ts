@@ -1,179 +1,126 @@
 import { z } from "zod";
 
 export const TapAction = z.object({
-  type: z.literal("tap").describe(
-    "Touch tap action. Quick touch state change at a position."
-  ),
-  x: z.number().int().min(0).max(1000).describe(
-    "Horizontal pixel coordinate. 0=left edge, 500=center, 1000=right edge."
-  ),
-  y: z.number().int().min(0).max(1000).describe(
-    "Vertical pixel coordinate. 0=top edge, 500=center, 1000=bottom edge."
-  ),
-  pressed: z.boolean().describe(
-    "Touch state. true=finger down (press), false=finger up (release). " +
-    "For a simple tap: [{type:'tap', x, y, pressed:true}, {type:'tap', x, y, pressed:false}]. " +
-    "For a swipe: [{type:'tap', x:startX, y:startY, pressed:true}, {type:'tap', x:endX, y:endY, pressed:false}]."
-  ),
-}).describe(
-  "Touch tap action. Controls finger press/release state at a position. " +
-  "Quick touch sequences for taps and swipes. Movement between press and release creates swipe gestures."
-);
+  type: z.literal("tap"),
+  x: z.number().int().min(0).max(1000),
+  y: z.number().int().min(0).max(1000),
+});
 
 export const HoldAction = z.object({
-  type: z.literal("hold").describe(
-    "Touch hold action. Long press state change at a position."
-  ),
-  x: z.number().int().min(0).max(1000).describe(
-    "Horizontal pixel coordinate. 0=left edge, 500=center, 1000=right edge."
-  ),
-  y: z.number().int().min(0).max(1000).describe(
-    "Vertical pixel coordinate. 0=top edge, 500=center, 1000=bottom edge."
-  ),
-  pressed: z.boolean().describe(
-    "Touch state. true=finger down (press and hold), false=finger up (release). " +
-    "For a long press: [{type:'hold', x, y, pressed:true}, {type:'wait', ms:800}, {type:'hold', x, y, pressed:false}]. " +
-    "For a drag: [{type:'hold', x:startX, y:startY, pressed:true}, {type:'wait', ms:200}, {type:'hold', x:endX, y:endY, pressed:false}]."
-  ),
-}).describe(
-  "Touch hold action. Controls finger press/release state for long press operations. " +
-  "Use with wait actions between press and release for proper hold timing. " +
-  "Movement between press and release creates drag gestures."
-);
+  type: z.literal("hold"),
+  x: z.number().int().min(0).max(1000),
+  y: z.number().int().min(0).max(1000),
+  ms: z.number().int().min(100).max(5000).default(800),
+});
+
+export const SwipeAction = z.object({
+  type: z.literal("swipe"),
+  startX: z.number().int().min(0).max(1000),
+  startY: z.number().int().min(0).max(1000),
+  endX: z.number().int().min(0).max(1000),
+  endY: z.number().int().min(0).max(1000),
+  ms: z.number().int().min(50).max(2000).default(200),
+});
+
+export const DragAction = z.object({
+  type: z.literal("drag"),
+  startX: z.number().int().min(0).max(1000),
+  startY: z.number().int().min(0).max(1000),
+  endX: z.number().int().min(0).max(1000),
+  endY: z.number().int().min(0).max(1000),
+  ms: z.number().int().min(100).max(3000).default(500),
+});
 
 export const WaitAction = z.object({
-  type: z.literal("wait").describe(
-    "Wait action type. Pauses execution for a specified duration."
-  ),
-  ms: z.number().int().min(0).max(10000).describe(
-    "Duration to wait in milliseconds (0-10000). " +
-    "Use 50-100ms between tap press/release for quick taps. " +
-    "Use 200-500ms between hold press/release for drag pickup. " +
-    "Use 500-1000ms for long press context menus."
-  ),
-}).describe(
-  "Execution pause. Delays the next action by the specified duration. " +
-  "Essential for timing between press and release in hold/drag operations."
-);
+  type: z.literal("wait"),
+  ms: z.number().int().min(0).max(10000),
+});
 
 export const Action = z.discriminatedUnion("type", [
   TapAction,
   HoldAction,
+  SwipeAction,
+  DragAction,
   WaitAction,
-]).describe(
-  "A single atomic touch input action. Actions are executed sequentially in array order. " +
-  "Complex behaviors are composed from multiple atomic actions."
-);
+]);
 
 export type Action = z.infer<typeof Action>;
 export type TapAction = z.infer<typeof TapAction>;
 export type HoldAction = z.infer<typeof HoldAction>;
+export type SwipeAction = z.infer<typeof SwipeAction>;
+export type DragAction = z.infer<typeof DragAction>;
 export type WaitAction = z.infer<typeof WaitAction>;
 
-export const AgentResponse = z.array(Action).min(1).max(100).describe(
-  "Ordered sequence of touch input actions to execute. Actions run sequentially. " +
-  "Tap: [{type:'tap', x:500, y:500, pressed:true}, {type:'tap', x:500, y:500, pressed:false}]. " +
-  "Swipe: [{type:'tap', x:500, y:700, pressed:true}, {type:'tap', x:500, y:300, pressed:false}]. " +
-  "Hold: [{type:'hold', x:500, y:500, pressed:true}, {type:'wait', ms:800}, {type:'hold', x:500, y:500, pressed:false}]. " +
-  "Drag: [{type:'hold', x:100, y:200, pressed:true}, {type:'wait', ms:200}, {type:'hold', x:400, y:200, pressed:false}]. " +
-  "Maximum 100 actions per response."
-);
+export const AgentResponse = z.array(Action).min(1).max(20);
 
 export type AgentResponse = z.infer<typeof AgentResponse>;
 
 export const AgentResponseJsonSchema = {
   type: "array",
   description:
-    "Ordered sequence of touch input actions to execute on an Android tablet at 1000x1000 resolution. " +
-    "The red dot overlay marks your last touch position. " +
-    "Tap: [{type:'tap', x:500, y:500, pressed:true}, {type:'tap', x:500, y:500, pressed:false}]. " +
-    "Swipe: [{type:'tap', x:500, y:700, pressed:true}, {type:'tap', x:500, y:300, pressed:false}]. " +
-    "Hold: [{type:'hold', x:500, y:500, pressed:true}, {type:'wait', ms:800}, {type:'hold', x:500, y:500, pressed:false}]. " +
-    "Drag: [{type:'hold', x:100, y:200, pressed:true}, {type:'wait', ms:200}, {type:'hold', x:400, y:200, pressed:false}].",
+    "Sequence of touch actions to execute on Android (1000x1000 resolution). " +
+    "The red dot shows your last touch. Execute actions to achieve the goal.",
   minItems: 1,
-  maxItems: 100,
+  maxItems: 20,
   items: {
     oneOf: [
       {
         type: "object",
-        description:
-          "Touch tap action. Quick touch state change at a position for taps and swipes.",
+        description: "Quick tap at a point.",
         properties: {
-          type: {
-            const: "tap",
-            description: "Tap action type identifier.",
-          },
-          x: {
-            type: "integer",
-            minimum: 0,
-            maximum: 1000,
-            description:
-              "Horizontal pixel coordinate. 0=left edge, 500=center, 1000=right edge.",
-          },
-          y: {
-            type: "integer",
-            minimum: 0,
-            maximum: 1000,
-            description:
-              "Vertical pixel coordinate. 0=top edge, 500=center, 1000=bottom edge.",
-          },
-          pressed: {
-            type: "boolean",
-            description:
-              "Touch state. true=finger down (press), false=finger up (release).",
-          },
+          type: { const: "tap" },
+          x: { type: "integer", minimum: 0, maximum: 1000 },
+          y: { type: "integer", minimum: 0, maximum: 1000 },
         },
-        required: ["type", "x", "y", "pressed"],
+        required: ["type", "x", "y"],
         additionalProperties: false,
       },
       {
         type: "object",
-        description:
-          "Touch hold action. Long press state change at a position for holds and drags.",
+        description: "Long press at a point. Use for context menus.",
         properties: {
-          type: {
-            const: "hold",
-            description: "Hold action type identifier.",
-          },
-          x: {
-            type: "integer",
-            minimum: 0,
-            maximum: 1000,
-            description:
-              "Horizontal pixel coordinate. 0=left edge, 500=center, 1000=right edge.",
-          },
-          y: {
-            type: "integer",
-            minimum: 0,
-            maximum: 1000,
-            description:
-              "Vertical pixel coordinate. 0=top edge, 500=center, 1000=bottom edge.",
-          },
-          pressed: {
-            type: "boolean",
-            description:
-              "Touch state. true=finger down (press and hold), false=finger up (release).",
-          },
+          type: { const: "hold" },
+          x: { type: "integer", minimum: 0, maximum: 1000 },
+          y: { type: "integer", minimum: 0, maximum: 1000 },
+          ms: { type: "integer", minimum: 100, maximum: 5000, default: 800 },
         },
-        required: ["type", "x", "y", "pressed"],
+        required: ["type", "x", "y"],
         additionalProperties: false,
       },
       {
         type: "object",
-        description:
-          "Execution pause. Essential for timing between press and release.",
+        description: "Swipe gesture from start to end. Use for scrolling.",
         properties: {
-          type: {
-            const: "wait",
-            description: "Wait action type identifier.",
-          },
-          ms: {
-            type: "integer",
-            minimum: 0,
-            maximum: 10000,
-            description:
-              "Duration to wait in milliseconds (0-10000).",
-          },
+          type: { const: "swipe" },
+          startX: { type: "integer", minimum: 0, maximum: 1000 },
+          startY: { type: "integer", minimum: 0, maximum: 1000 },
+          endX: { type: "integer", minimum: 0, maximum: 1000 },
+          endY: { type: "integer", minimum: 0, maximum: 1000 },
+          ms: { type: "integer", minimum: 50, maximum: 2000, default: 200 },
+        },
+        required: ["type", "startX", "startY", "endX", "endY"],
+        additionalProperties: false,
+      },
+      {
+        type: "object",
+        description: "Hold and drag from start to end. Use for moving items.",
+        properties: {
+          type: { const: "drag" },
+          startX: { type: "integer", minimum: 0, maximum: 1000 },
+          startY: { type: "integer", minimum: 0, maximum: 1000 },
+          endX: { type: "integer", minimum: 0, maximum: 1000 },
+          endY: { type: "integer", minimum: 0, maximum: 1000 },
+          ms: { type: "integer", minimum: 100, maximum: 3000, default: 500 },
+        },
+        required: ["type", "startX", "startY", "endX", "endY"],
+        additionalProperties: false,
+      },
+      {
+        type: "object",
+        description: "Wait for a duration.",
+        properties: {
+          type: { const: "wait" },
+          ms: { type: "integer", minimum: 0, maximum: 10000 },
         },
         required: ["type", "ms"],
         additionalProperties: false,

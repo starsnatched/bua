@@ -1,18 +1,19 @@
-import { VncClient, type VncConfig } from "./vnc-client";
+import { type AdbConfig } from "./adb-client";
 import { LlmClient } from "./llm";
 import { getConfig } from "./config";
+import { getAdbClient, getScreenshotForAgent } from "./adb-singleton";
+import type { AdbClient } from "./adb-client";
 
 export interface AgentConfig {
-  vnc: VncConfig;
+  adb: AdbConfig;
   model?: string;
   actionDelay?: number;
-  screenshotDelay?: number;
 }
 
 let agentInstance: Agent | null = null;
 
 export class Agent {
-  private vnc: VncClient;
+  private adb: AdbClient | null = null;
   private llm: LlmClient | null = null;
   private config: AgentConfig;
   private running = false;
@@ -20,14 +21,13 @@ export class Agent {
 
   constructor(config: AgentConfig) {
     this.config = config;
-    this.vnc = new VncClient(config.vnc);
   }
 
   async start(): Promise<void> {
     if (this.running) return;
 
-    console.log("[Agent] Connecting to VNC...");
-    await this.vnc.connect();
+    console.log("[Agent] Connecting to ADB...");
+    this.adb = await getAdbClient();
     console.log("[Agent] Connected");
 
     this.llm = new LlmClient(this.config.model ?? "bua");
@@ -41,26 +41,27 @@ export class Agent {
       this.iteration++;
 
       try {
-        await this.sleep(this.config.screenshotDelay ?? 300);
-        const screenshot = await this.vnc.screenshot();
-
-        console.log(`[Agent] Iteration ${this.iteration}`);
+        const screenshot = await getScreenshotForAgent();
+        console.log(`[Agent] Iteration ${this.iteration} - requesting actions`);
 
         const response = await this.llm!.infer(screenshot);
+        console.log(`[Agent] Received ${response.length} action(s)`);
 
         for (const action of response) {
-          console.log(`[Agent] ${action.type}:`, JSON.stringify(action));
-          await this.vnc.execute(action);
-          await this.sleep(this.config.actionDelay ?? 20);
+          console.log(`[Agent] Executing: ${action.type}`, JSON.stringify(action));
+          await this.adb!.execute(action);
+          await this.sleep(this.config.actionDelay ?? 50);
         }
+
+        await this.sleep(500);
       } catch (err) {
         console.error("[Agent] Error:", err);
         await this.sleep(2000);
 
-        if (!this.vnc.isConnected()) {
+        if (!this.adb?.isConnected()) {
           console.log("[Agent] Reconnecting...");
           try {
-            await this.vnc.connect();
+            this.adb = await getAdbClient();
             this.llm?.reset();
           } catch (reconnectErr) {
             console.error("[Agent] Reconnect failed:", reconnectErr);
@@ -73,7 +74,6 @@ export class Agent {
 
   stop(): void {
     this.running = false;
-    this.vnc.disconnect();
     console.log("[Agent] Stopped");
   }
 
@@ -94,14 +94,14 @@ export async function startAgent(config?: Partial<AgentConfig>): Promise<Agent> 
   const appConfig = getConfig();
 
   agentInstance = new Agent({
-    vnc: {
-      host: config?.vnc?.host ?? process.env.VNC_HOST ?? appConfig.vnc.host,
-      port: config?.vnc?.port ?? parseInt(process.env.VNC_PORT ?? String(appConfig.vnc.port), 10),
-      password: config?.vnc?.password ?? process.env.VNC_PASSWORD ?? appConfig.vnc.password,
+    adb: {
+      containerName: config?.adb?.containerName ?? process.env.ANDROID_CONTAINER ?? "bua-android-tablet",
+      targetWidth: config?.adb?.targetWidth ?? parseInt(process.env.TARGET_WIDTH ?? "1000", 10),
+      targetHeight: config?.adb?.targetHeight ?? parseInt(process.env.TARGET_HEIGHT ?? "1000", 10),
+      displayDensity: config?.adb?.displayDensity ?? parseInt(process.env.DISPLAY_DENSITY ?? "200", 10),
     },
     model: config?.model ?? process.env.LLM_MODEL ?? appConfig.llm.model,
     actionDelay: config?.actionDelay ?? appConfig.agent.actionDelay,
-    screenshotDelay: config?.screenshotDelay ?? appConfig.agent.screenshotDelay,
   });
 
   await agentInstance.start();
@@ -118,6 +118,6 @@ export function getAgent(): Agent | null {
 }
 
 export * from "./schema";
-export * from "./vnc-client";
+export * from "./adb-client";
 export * from "./llm";
 export * from "./config";

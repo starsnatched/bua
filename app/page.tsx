@@ -1,13 +1,12 @@
-import VirtualTablet from "./components/VirtualDesktop";
+import AdbDisplay from "./components/AdbDisplay";
 
 export default function Home() {
   return (
     <div className="app-fullscreen">
-      <VirtualTablet 
-        host="localhost"
-        port={6080}
-        hideControls={true}
-        viewOnly={true}
+      <AdbDisplay
+        width={1000}
+        height={1000}
+        refreshInterval={100}
       />
     </div>
   );
